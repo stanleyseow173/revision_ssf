@@ -1,5 +1,6 @@
 package sg.nus.edu.iss.revision.service;
 
+import java.lang.StackWalker.Option;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -9,9 +10,13 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import sg.nus.edu.iss.revision.model.Delivery;
 import sg.nus.edu.iss.revision.model.Order;
@@ -105,5 +110,21 @@ public class PizzaService {
         }
 
         return errors;
+    }
+
+    public Optional<Order> getOrderDetails(String orderId){
+        String url = UriComponentsBuilder
+                        .fromUriString("http://localhost:8080/order/"+ orderId)
+                        .toUriString();
+        
+        RequestEntity req = RequestEntity.get(url).build();
+
+        RestTemplate template = new RestTemplate();
+        ResponseEntity<String> resp = template.exchange(req, String.class);
+        Order o = Order.create(resp.getBody());
+        if(null == o)
+            return Optional.empty();
+
+        return Optional.of(o);
     }
 }
